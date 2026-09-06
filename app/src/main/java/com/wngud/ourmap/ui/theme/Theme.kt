@@ -23,6 +23,8 @@ private val DarkColorScheme = darkColorScheme(
     secondaryContainer = Color(0xFF584334),
     onSecondaryContainer = Color(0xFFFFDCC0),
     tertiary = Color(0xFFB8CEA5),
+    tertiaryContainer = Color(0xFF254958),
+    onTertiaryContainer = Color(0xFFCDE9F3),
     background = Color(0xFF19130F),
     onBackground = Color(0xFFF0E0D4),
     surface = Color(0xFF211A15),
@@ -33,7 +35,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF9B4600),
+    primary = Color(0xFFB85000),
     onPrimary = Color.White,
     primaryContainer = Color(0xFFFFDCC0),
     onPrimaryContainer = Color(0xFF321300),
@@ -41,6 +43,8 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = Color(0xFFFFEBD9),
     onSecondaryContainer = Color(0xFF523821),
     tertiary = Color(0xFF506543),
+    tertiaryContainer = Color(0xFFCDE9F3),
+    onTertiaryContainer = Color(0xFF123B49),
     background = Color(0xFFFAF7F2),
     onBackground = Color(0xFF28221D),
     surface = Color(0xFFFFFBF7),

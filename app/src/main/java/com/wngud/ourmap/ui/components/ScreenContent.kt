@@ -1,6 +1,7 @@
 package com.wngud.ourmap.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -25,8 +26,9 @@ fun ScreenContent(title: String, subtitle: String, modifier: Modifier = Modifier
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MemoryCard(memory: Memory, modifier: Modifier = Modifier) {
-    OurMapCard(modifier.fillMaxWidth()) {
+fun MemoryCard(memory: Memory, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+    OurMapCard(modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
+        memory.photoStyles.firstOrNull()?.let { SamplePhoto(it, Modifier.fillMaxWidth().height(140.dp)) }
         Text(memory.place.name, style = MaterialTheme.typography.titleLarge)
         Text("${memory.visitedOn} · ${memory.companion}과 함께", style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)

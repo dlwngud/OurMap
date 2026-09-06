@@ -1,6 +1,8 @@
 package com.wngud.ourmap.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -31,8 +33,10 @@ fun OurMapChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OurMapBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, modifier = modifier) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
+    ModalBottomSheet(onDismissRequest = onDismiss, modifier = modifier,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding()
+            .padding(horizontal = 24.dp).padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
     }
 }
