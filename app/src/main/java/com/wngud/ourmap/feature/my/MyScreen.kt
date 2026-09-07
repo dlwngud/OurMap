@@ -10,7 +10,8 @@ import com.wngud.ourmap.ui.components.*
 
 @Composable
 fun MyScreen(session: DemoSession, onProfile: () -> Unit, onRecords: () -> Unit, onWishlist: () -> Unit,
-    onInvite: () -> Unit, onInfo: (String, String) -> Unit, onRestart: () -> Unit) {
+    onInvite: () -> Unit, onInfo: (String, String) -> Unit, onRestart: () -> Unit,
+    accountLabel: String = "처음부터 다시 체험") {
     PrototypePage("마이", subtitle = "나의 기록과 취향을 담는 곳") {
         OurMapCard(Modifier.fillMaxWidth()) {
             Text(session.avatar, fontSize = 48.sp)
@@ -27,6 +28,6 @@ fun MyScreen(session: DemoSession, onProfile: () -> Unit, onRecords: () -> Unit,
         FeatureRow("초대 관리", onInvite, emoji = "💌")
         FeatureRow("앱 설정", { onInfo("앱 설정", "테마는 시스템의 밝은 모드·어두운 모드를 따라갑니다. 현재 앱은 샘플 데이터 기반 UI 미리보기입니다.") }, emoji = "⚙")
         FeatureRow("도움말", { onInfo("도움말", "지도에서 장소를 누르거나 + 버튼을 눌러 추억을 작성해 보세요. 샘플 이미지만 사용하며 실제 계정·서버에는 저장하지 않습니다.") }, emoji = "❔")
-        TextButton(onRestart, Modifier.fillMaxWidth()) { Text("처음부터 다시 체험") }
+        TextButton(onRestart, Modifier.fillMaxWidth()) { Text(accountLabel) }
     }
 }

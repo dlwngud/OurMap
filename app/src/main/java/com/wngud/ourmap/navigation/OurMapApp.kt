@@ -43,13 +43,24 @@ private val SessionSaver = Saver<DemoSession, String>(
 
 @Composable
 fun OurMapApp(viewModel: MainViewModel) {
-    OurMapAppContent(demo = viewModel.demo)
+    LocalOnboardingApp(demo = viewModel.demo)
 }
 
+data class LocalAccountControls(
+    val session: DemoSession,
+    val onProfile: () -> Unit,
+    val onInvite: () -> Unit,
+    val onAccount: () -> Unit,
+    val companion: String? = null,
+)
+
 @Composable
-fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier) {
-    val backStack = rememberNavBackStack(AppRoute.Login)
-    var session by rememberSaveable(stateSaver = SessionSaver) { mutableStateOf(DemoSession()) }
+fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: LocalAccountControls? = null) {
+    val backStack = rememberNavBackStack(if (account == null) AppRoute.Login else MainDestination.Us)
+    var session by rememberSaveable(stateSaver = SessionSaver) { mutableStateOf(account?.session ?: DemoSession()) }
+    LaunchedEffect(account?.session) {
+        account?.let { session = it.session.copy(memories = session.memories, wishedPlaceIds = session.wishedPlaceIds) }
+    }
     var resetConfirmation by rememberSaveable { mutableStateOf(false) }
     val tabStates = rememberSaveableStateHolder()
     val current = backStack.last()
@@ -122,11 +133,13 @@ fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier) {
                                 MainDestination.Map -> MapScreen(session.memories, places, create, ::openPlace)
                                 MainDestination.Records -> RecordsScreen(session.memories, ::openMemory, ::openPlace,
                                     { id, index -> push(AppRoute.Gallery(id, index)) }, create)
-                                MainDestination.Us -> UsScreen(session, create, { push(AppRoute.Invite) },
+                                MainDestination.Us -> UsScreen(session, create, { account?.onInvite?.invoke() ?: push(AppRoute.Invite) },
                                     { push(AppRoute.Wishlist) }, ::openMemory, { replaceRoot(MainDestination.Records) })
-                                MainDestination.My -> MyScreen(session, { push(AppRoute.Profile(editing = true)) },
+                                MainDestination.My -> MyScreen(session, { account?.onProfile?.invoke() ?: push(AppRoute.Profile(editing = true)) },
                                     { replaceRoot(MainDestination.Records) }, { push(AppRoute.Wishlist) },
-                                    { push(AppRoute.Invite) }, ::info, { resetConfirmation = true })
+                                    { account?.onInvite?.invoke() ?: push(AppRoute.Invite) }, ::info,
+                                    { account?.onAccount?.invoke() ?: run { resetConfirmation = true } },
+                                    accountLabel = if (account == null) "처음부터 다시 체험" else "로컬 계정 관리")
                             }
                         }
                         AppRoute.Login -> LoginScreen(
@@ -166,7 +179,7 @@ fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier) {
                             replaceRoot(MainDestination.Us)
                         }
                         is AppRoute.Editor -> MemoryEditorScreen(places, key.placeId,
-                            companion = if (session.partnerJoined) {
+                            companion = account?.companion ?: if (session.partnerJoined) {
                                 if (session.name == "수빈") "주형" else "수빈"
                             } else session.name,
                             onBack = ::back,
