@@ -19,7 +19,7 @@ fun UsScreen(session: DemoSession, onCreate: () -> Unit, onInvite: () -> Unit, o
             HorizontalDivider()
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                 Stat("장소", session.memories.map { it.place.id }.distinct().size)
-                Stat("사진", session.memories.sumOf { it.photoStyles.size })
+                Stat("사진", session.memories.sumOf { it.photoCount })
                 Stat("기록", session.memories.size)
             }
         }

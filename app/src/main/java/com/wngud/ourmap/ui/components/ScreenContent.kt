@@ -28,7 +28,7 @@ fun ScreenContent(title: String, subtitle: String, modifier: Modifier = Modifier
 @Composable
 fun MemoryCard(memory: Memory, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     OurMapCard(modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)) {
-        memory.photoStyles.firstOrNull()?.let { SamplePhoto(it, Modifier.fillMaxWidth().height(140.dp)) }
+        if (memory.photoCount > 0) MemoryPhoto(memory, 0, Modifier.fillMaxWidth().height(140.dp))
         Text(memory.place.name, style = MaterialTheme.typography.titleLarge)
         Text("${memory.visitedOn} · ${memory.companion}과 함께", style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)

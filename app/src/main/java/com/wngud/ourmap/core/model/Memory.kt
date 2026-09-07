@@ -17,7 +17,10 @@ data class Memory(
     val mood: String = "좋았어요",
     val photoStyles: List<Int> = listOf(0, 1, 2),
     val favorite: Boolean = false,
-)
+    val photoUris: List<String> = emptyList(),
+) {
+    val photoCount: Int get() = photoUris.size + photoStyles.size
+}
 
 @Serializable
 data class Space(val id: String, val name: String, val memberNames: List<String>)

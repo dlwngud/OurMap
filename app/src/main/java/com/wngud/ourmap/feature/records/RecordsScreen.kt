@@ -39,11 +39,11 @@ fun RecordsScreen(memories: List<Memory>, onMemory: (String) -> Unit, onPlace: (
                 FeatureRow(place.name, { onPlace(place.id) }, subtitle = "${filtered.count { it.place.id == place.id }}개의 추억", emoji = "📍")
             }
             else -> {
-                if (filtered.all { it.photoStyles.isEmpty() }) Text("선택한 기록에는 사진이 없어요.")
+                if (filtered.all { it.photoCount == 0 }) Text("선택한 기록에는 사진이 없어요.")
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     filtered.forEach { memory ->
-                        memory.photoStyles.forEachIndexed { index, style ->
-                            SamplePhoto(style, Modifier.size(140.dp).clickable(onClickLabel = "${memory.place.name} 사진 ${index + 1}") {
+                        repeat(memory.photoCount) { index ->
+                            MemoryPhoto(memory, index, Modifier.size(140.dp).clickable(onClickLabel = "${memory.place.name} 사진 ${index + 1}") {
                                 onPhoto(memory.id, index)
                             })
                         }

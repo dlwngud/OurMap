@@ -14,8 +14,10 @@ ksp = "2.3.4"
 serialization = "1.9.0"
 datastore = "1.2.1"
 coroutines = "1.10.2"
+coil = "3.4.0"
 
 [libraries]
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }

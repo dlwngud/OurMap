@@ -20,8 +20,8 @@ fun MemoryDetailScreen(memory: Memory, onBack: () -> Unit, onFavorite: () -> Uni
     PrototypePage("추억 상세", onBack = onBack, footer = {
         OurMapButton(onPlace, Modifier.fillMaxWidth()) { Text("장소의 기록 모아보기") }
     }) {
-        if (memory.photoStyles.isNotEmpty()) {
-            SamplePhoto(memory.photoStyles.first(), Modifier.fillMaxWidth().height(220.dp)
+        if (memory.photoCount > 0) {
+            MemoryPhoto(memory, 0, Modifier.fillMaxWidth().height(220.dp)
                 .clickable(onClickLabel = "대표 사진 보기") { onPhoto(0) })
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -33,11 +33,11 @@ fun MemoryDetailScreen(memory: Memory, onBack: () -> Unit, onFavorite: () -> Uni
             Text("그날의 기분 · ${memory.mood}", style = MaterialTheme.typography.titleMedium)
             Text(memory.note.ifBlank { "사진과 장소로 남긴 소중한 순간이에요." })
         }
-        Text("사진 모아보기 · ${memory.photoStyles.size}장", style = MaterialTheme.typography.titleMedium)
-        if (memory.photoStyles.isEmpty()) Text("이 기록에는 사진이 없어요.")
+        Text("사진 모아보기 · ${memory.photoCount}장", style = MaterialTheme.typography.titleMedium)
+        if (memory.photoCount == 0) Text("이 기록에는 사진이 없어요.")
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            memory.photoStyles.forEachIndexed { index, style ->
-                SamplePhoto(style, Modifier.size(128.dp).clickable(onClickLabel = "사진 ${index + 1} 보기") { onPhoto(index) })
+            repeat(memory.photoCount) { index ->
+                MemoryPhoto(memory, index, Modifier.size(128.dp).clickable(onClickLabel = "사진 ${index + 1} 보기") { onPhoto(index) })
             }
         }
         Text("미리보기 기록 · 실제 저장 기능은 다음 단계에서 연결해요.",
@@ -51,7 +51,9 @@ fun PlaceDetailScreen(place: Place, memories: List<Memory>, wished: Boolean, onB
     PrototypePage("장소 상세", onBack = onBack, footer = {
         OurMapButton(onCreate, Modifier.fillMaxWidth()) { Text("이 장소에 기록 남기기") }
     }) {
-        SamplePhoto(memories.firstOrNull()?.photoStyles?.firstOrNull() ?: 0, Modifier.fillMaxWidth().height(180.dp))
+        memories.firstOrNull { it.photoCount > 0 }?.let {
+            MemoryPhoto(it, 0, Modifier.fillMaxWidth().height(180.dp))
+        }
         Text(place.name, style = MaterialTheme.typography.headlineLarge)
         Text(place.address, color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedButton(onClick = onWish) { Text(if (wished) "가보고 싶은 곳에서 해제" else "가보고 싶은 곳에 저장") }
@@ -63,16 +65,16 @@ fun PlaceDetailScreen(place: Place, memories: List<Memory>, wished: Boolean, onB
 
 @Composable
 fun GalleryScreen(memory: Memory, initialIndex: Int, onBack: () -> Unit) {
-    var index by rememberSaveable { mutableIntStateOf(initialIndex.coerceIn(0, (memory.photoStyles.size - 1).coerceAtLeast(0))) }
+    var index by rememberSaveable(memory.id) { mutableIntStateOf(initialIndex.coerceIn(0, (memory.photoCount - 1).coerceAtLeast(0))) }
     PrototypePage("사진 모아보기", onBack = onBack) {
-        if (memory.photoStyles.isEmpty()) {
+        if (memory.photoCount == 0) {
             Text("아직 사진이 없어요.")
         } else {
-            SamplePhoto(memory.photoStyles[index], Modifier.fillMaxWidth().aspectRatio(.85f))
-            Text("${index + 1} / ${memory.photoStyles.size}", Modifier.align(Alignment.CenterHorizontally))
+            MemoryPhoto(memory, index, Modifier.fillMaxWidth().aspectRatio(.85f))
+            Text("${index + 1} / ${memory.photoCount}", Modifier.align(Alignment.CenterHorizontally))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton({ index-- }, enabled = index > 0) { Text("이전 사진") }
-                TextButton({ index++ }, enabled = index < memory.photoStyles.lastIndex) { Text("다음 사진") }
+                TextButton({ index++ }, enabled = index < memory.photoCount - 1) { Text("다음 사진") }
             }
         }
     }
