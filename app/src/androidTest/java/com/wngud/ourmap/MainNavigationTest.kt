@@ -109,7 +109,7 @@ class MainNavigationTest {
         compose.onNodeWithText("날씨가 좋아 오래 걸었던 날").performScrollTo().performClick()
         compose.onNodeWithText("추억 상세").assertIsDisplayed()
         compose.onNodeWithText("♡ 추억 찜").performScrollTo().performClick()
-        compose.onNodeWithText("♥ 찜 해제").assertIsDisplayed()
+        compose.onNodeWithText("♥ 찜 해제").performScrollTo().assertIsDisplayed()
         // The illustration's click label is an accessibility action, so match its descendant label.
         compose.onAllNodesWithText("샘플 이미지").onFirst().performScrollTo().performClick()
         compose.onNodeWithText("1 / 3").performScrollTo().assertIsDisplayed()

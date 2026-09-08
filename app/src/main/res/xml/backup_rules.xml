@@ -8,6 +8,7 @@
 <full-backup-content>
     <!-- Device-local prototype identity must not be restored onto another device. -->
     <exclude domain="file" path="datastore/onboarding.json" />
+    <exclude domain="database" path="memories.db" />
     <!--
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>

@@ -50,7 +50,8 @@ class OnboardingViewModel @Inject constructor(private val repository: Onboarding
                 mutableState.value = state.value.copy(saving = false, error = e.message ?: "입력을 확인해 주세요.")
             } catch (_: Exception) {
                 mutableState.value = state.value.copy(saving = false,
-                    error = "저장하지 못했어요. 입력은 유지됩니다. 저장 공간을 확인하고 다시 시도해 주세요.")
+                    error = if (action == OnboardingAction.Reset) "초기화를 마치지 못했어요. 일부 기록·사진은 이미 삭제됐을 수 있어요. 다시 초기화해 주세요."
+                        else "저장하지 못했어요. 입력은 유지됩니다. 저장 공간을 확인하고 다시 시도해 주세요.")
             }
         }
     }

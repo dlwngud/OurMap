@@ -16,7 +16,7 @@ import com.wngud.ourmap.ui.components.*
 
 @Composable
 fun MemoryDetailScreen(memory: Memory, onBack: () -> Unit, onFavorite: () -> Unit,
-    onPlace: () -> Unit, onPhoto: (Int) -> Unit) {
+    onPlace: () -> Unit, onPhoto: (Int) -> Unit, persisted: Boolean = false) {
     PrototypePage("추억 상세", onBack = onBack, footer = {
         OurMapButton(onPlace, Modifier.fillMaxWidth()) { Text("장소의 기록 모아보기") }
     }) {
@@ -40,7 +40,7 @@ fun MemoryDetailScreen(memory: Memory, onBack: () -> Unit, onFavorite: () -> Uni
                 MemoryPhoto(memory, index, Modifier.size(128.dp).clickable(onClickLabel = "사진 ${index + 1} 보기") { onPhoto(index) })
             }
         }
-        Text("미리보기 기록 · 실제 저장 기능은 다음 단계에서 연결해요.",
+        Text(if (persisted) "기기에 저장된 기록 · 서버 백업 없음" else "미리보기 기록 · 실제 저장 기능은 다음 단계에서 연결해요.",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

@@ -1,0 +1,136 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "4f747c29a89dde8a4849af7357ec0a7e",
+    "entities": [
+      {
+        "tableName": "memories",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `spaceId` TEXT NOT NULL, `id` TEXT NOT NULL, `visitedOn` TEXT NOT NULL, `note` TEXT NOT NULL, `companion` TEXT NOT NULL, `mood` TEXT NOT NULL, `favorite` INTEGER NOT NULL, `tagsJson` TEXT NOT NULL, `stylesJson` TEXT NOT NULL, `photosJson` TEXT NOT NULL, `place_id` TEXT NOT NULL, `place_name` TEXT NOT NULL, `place_address` TEXT NOT NULL, `place_latitude` REAL NOT NULL, `place_longitude` REAL NOT NULL, PRIMARY KEY(`userId`, `spaceId`, `id`))",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "spaceId",
+            "columnName": "spaceId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "visitedOn",
+            "columnName": "visitedOn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "companion",
+            "columnName": "companion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mood",
+            "columnName": "mood",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tagsJson",
+            "columnName": "tagsJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stylesJson",
+            "columnName": "stylesJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photosJson",
+            "columnName": "photosJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "place.id",
+            "columnName": "place_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "place.name",
+            "columnName": "place_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "place.address",
+            "columnName": "place_address",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "place.latitude",
+            "columnName": "place_latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "place.longitude",
+            "columnName": "place_longitude",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userId",
+            "spaceId",
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_memories_userId_spaceId_visitedOn",
+            "unique": false,
+            "columnNames": [
+              "userId",
+              "spaceId",
+              "visitedOn"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_memories_userId_spaceId_visitedOn` ON `${TABLE_NAME}` (`userId`, `spaceId`, `visitedOn`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4f747c29a89dde8a4849af7357ec0a7e')"
+    ]
+  }
+}

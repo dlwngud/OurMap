@@ -34,6 +34,8 @@ import com.wngud.ourmap.feature.onboarding.*
 import com.wngud.ourmap.ui.components.*
 import com.wngud.ourmap.ui.theme.OurMapTheme
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import com.wngud.ourmap.core.model.Memory
 import kotlinx.serialization.json.Json
 
 private val SessionSaver = Saver<DemoSession, String>(
@@ -55,9 +57,12 @@ data class LocalAccountControls(
 )
 
 @Composable
-fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: LocalAccountControls? = null) {
+fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: LocalAccountControls? = null,
+    stored: StoredMemoryControls? = null) {
     val backStack = rememberNavBackStack(if (account == null) AppRoute.Login else MainDestination.Us)
     var session by rememberSaveable(stateSaver = SessionSaver) { mutableStateOf(account?.session ?: DemoSession()) }
+    // NavEntry content may outlive its creating lambda. Read observable current data inside it.
+    val displayedSession by rememberUpdatedState(session.copy(memories = stored?.memories ?: session.memories))
     LaunchedEffect(account?.session) {
         account?.let { session = it.session.copy(memories = session.memories, wishedPlaceIds = session.wishedPlaceIds) }
     }
@@ -68,7 +73,19 @@ fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: 
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val places = demo.memories.map { it.place }.distinctBy { it.id }
+    val places = (displayedSession.memories + demo.memories).map { it.place }.distinctBy { it.id }
+    var favoriteBusy by remember { mutableStateOf(false) }
+    fun toggleFavorite(id: String) {
+        if (stored == null) { session = session.toggleFavorite(id); return }
+        if (favoriteBusy) return
+        favoriteBusy = true
+        scope.launch {
+            try { stored.toggleFavorite(id) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { snackbar.showSnackbar("찜 변경을 저장하지 못했어요. 다시 눌러 주세요.") }
+            finally { favoriteBusy = false }
+        }
+    }
 
     fun replaceRoot(key: NavKey) {
         backStack.clear()
@@ -130,12 +147,12 @@ fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: 
                     when (key) {
                         is MainDestination -> tabStates.SaveableStateProvider(key) {
                             when (key) {
-                                MainDestination.Map -> MapScreen(session.memories, places, create, ::openPlace)
-                                MainDestination.Records -> RecordsScreen(session.memories, ::openMemory, ::openPlace,
+                                MainDestination.Map -> MapScreen(displayedSession.memories, places, create, ::openPlace)
+                                MainDestination.Records -> RecordsScreen(displayedSession.memories, ::openMemory, ::openPlace,
                                     { id, index -> push(AppRoute.Gallery(id, index)) }, create)
-                                MainDestination.Us -> UsScreen(session, create, { account?.onInvite?.invoke() ?: push(AppRoute.Invite) },
+                                MainDestination.Us -> UsScreen(displayedSession, create, { account?.onInvite?.invoke() ?: push(AppRoute.Invite) },
                                     { push(AppRoute.Wishlist) }, ::openMemory, { replaceRoot(MainDestination.Records) })
-                                MainDestination.My -> MyScreen(session, { account?.onProfile?.invoke() ?: push(AppRoute.Profile(editing = true)) },
+                                MainDestination.My -> MyScreen(displayedSession, { account?.onProfile?.invoke() ?: push(AppRoute.Profile(editing = true)) },
                                     { replaceRoot(MainDestination.Records) }, { push(AppRoute.Wishlist) },
                                     { account?.onInvite?.invoke() ?: push(AppRoute.Invite) }, ::info,
                                     { account?.onAccount?.invoke() ?: run { resetConfirmation = true } },
@@ -184,26 +201,27 @@ fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: 
                             } else session.name,
                             onBack = ::back,
                             onSave = { memory ->
-                                session = session.withMemory(memory)
+                                if (stored == null) session = session.withMemory(memory)
                                 backStack[backStack.lastIndex] = AppRoute.MemoryDetail(memory.id)
                             },
+                            persist = stored?.save,
                         )
                         is AppRoute.MemoryDetail -> {
-                            val memory = session.memories.firstOrNull { it.id == key.id }
+                            val memory = displayedSession.memories.firstOrNull { it.id == key.id }
                             if (memory == null) MissingContent(::back) else MemoryDetailScreen(memory, ::back,
-                                { session = session.toggleFavorite(memory.id) },
+                                { toggleFavorite(memory.id) },
                                 { openPlace(memory.place.id) },
-                                { push(AppRoute.Gallery(memory.id, it)) })
+                                { push(AppRoute.Gallery(memory.id, it)) }, persisted = stored != null)
                         }
                         is AppRoute.PlaceDetail -> {
                             val place = places.firstOrNull { it.id == key.id }
                             if (place == null) MissingContent(::back) else PlaceDetailScreen(place,
-                                session.memories.filter { it.place.id == key.id }, place.id in session.wishedPlaceIds,
+                                displayedSession.memories.filter { it.place.id == key.id }, place.id in session.wishedPlaceIds,
                                 ::back, { session = session.toggleWish(place.id) },
                                 { push(AppRoute.Editor(place.id)) }, ::openMemory)
                         }
                         is AppRoute.Gallery -> {
-                            val memory = session.memories.firstOrNull { it.id == key.memoryId }
+                            val memory = displayedSession.memories.firstOrNull { it.id == key.memoryId }
                             if (memory == null) MissingContent(::back) else GalleryScreen(memory, key.index, ::back)
                         }
                         AppRoute.Wishlist -> WishlistScreen(places, session.wishedPlaceIds, ::back,
@@ -231,6 +249,9 @@ fun OurMapAppContent(demo: DemoContent, modifier: Modifier = Modifier, account: 
         dismissButton = { TextButton(onClick = { resetConfirmation = false }) { Text("취소") } },
     )
 }
+
+data class StoredMemoryControls(val memories: List<Memory>,
+    val save: suspend (Memory) -> Memory, val toggleFavorite: suspend (String) -> Unit)
 
 @Composable
 private fun MissingContent(onBack: () -> Unit) {

@@ -62,7 +62,8 @@ class LocalOnboardingTest {
         click("마이"); click("프로필 편집")
         compose.onNodeWithText("이름 또는 닉네임").performTextReplacement("새이름")
         click("프로필 저장")
-        compose.onNodeWithText("새이름").assertIsDisplayed()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("새이름").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("새이름").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun failedProfileSaveKeepsInputUntilRetrySucceeds() {

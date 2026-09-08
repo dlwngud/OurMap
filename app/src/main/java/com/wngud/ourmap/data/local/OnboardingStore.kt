@@ -95,10 +95,14 @@ private fun generateInviteCode(): String {
 }
 
 @Singleton
-class LocalOnboardingRepository @Inject constructor(@ApplicationContext context: Context) : OnboardingRepository {
+class LocalOnboardingRepository @Inject constructor(@ApplicationContext context: Context,
+    private val memories: com.wngud.ourmap.domain.memory.MemoryRepository) : OnboardingRepository {
     private val delegate = DataStoreOnboardingRepository(context.onboardingStore)
     override suspend fun load() = delegate.load()
-    override suspend fun perform(action: OnboardingAction) = delegate.perform(action)
+    override suspend fun perform(action: OnboardingAction): Onboarding {
+        if (action == OnboardingAction.Reset) memories.clearLocalData()
+        return delegate.perform(action)
+    }
 }
 
 @Module

@@ -25,6 +25,8 @@ import com.wngud.ourmap.data.demo.DemoContent
 import com.wngud.ourmap.data.demo.DemoSession
 import com.wngud.ourmap.data.demo.formatDate
 import com.wngud.ourmap.domain.onboarding.*
+import com.wngud.ourmap.domain.memory.MemoryOwner
+import com.wngud.ourmap.feature.memory.PersistentHome
 import com.wngud.ourmap.navigation.LocalAccountControls
 import com.wngud.ourmap.navigation.OurMapAppContent
 import com.wngud.ourmap.ui.components.*
@@ -37,7 +39,13 @@ private enum class LocalRoute : NavKey { Login, Profile, Choice, Create, Join, I
 fun LocalOnboardingApp(demo: DemoContent, model: OnboardingViewModel = viewModel()) {
     val state by model.state.collectAsStateWithLifecycle()
     LaunchedEffect(model) { model.load() }
-    LocalOnboardingContent(state, demo, model::perform, model::load, model::acknowledge, model::dismissError)
+    LocalOnboardingContent(state, demo, model::perform, model::load, model::acknowledge, model::dismissError,
+        home = { controls ->
+            val data = state.data
+            if (data?.user != null && data.space != null) {
+                PersistentHome(demo, controls, MemoryOwner(data.user.id, data.space.id))
+            }
+        })
 }
 
 @Composable
@@ -48,6 +56,7 @@ fun LocalOnboardingContent(
     onRetry: () -> Unit,
     onAcknowledge: () -> Unit,
     onDismissError: () -> Unit,
+    home: (@Composable (LocalAccountControls) -> Unit)? = null,
 ) {
     if (state.data == null) {
         Scaffold { padding ->
@@ -100,9 +109,10 @@ fun LocalOnboardingContent(
             NavEntry(route) {
                 if (route == LocalRoute.Home && data.space != null && data.signedIn) {
                     mainState.SaveableStateProvider("main") {
-                        OurMapAppContent(demo, account = LocalAccountControls(session,
+                        val controls = LocalAccountControls(session,
                             { push(LocalRoute.Profile) }, { push(LocalRoute.Invite) }, { push(LocalRoute.Account) },
-                            companion = data.members.firstOrNull { it.userId != data.user?.id }?.name ?: "나"))
+                            companion = data.members.firstOrNull { it.userId != data.user?.id }?.name ?: "나")
+                        if (home != null) home(controls) else OurMapAppContent(demo, account = controls)
                     }
                 } else Scaffold { padding ->
                     Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) {
@@ -140,7 +150,7 @@ fun LocalOnboardingContent(
                                 }, onRenew = { renewConfirmation = true },
                                 onSimulate = { onAction(OnboardingAction.SimulatePartner) })
                             LocalRoute.Account -> PrototypePage("로컬 계정 관리", onBack = ::back) {
-                                Text("프로필·Space·초대는 이 기기에 저장돼요. 기록·사진은 아직 미리보기 데이터예요.")
+                                Text("프로필·Space·초대·저장한 기록과 사진은 이 기기에 보관돼요. 서버 백업은 아직 없어요.")
                                 OurMapButton({ onAction(OnboardingAction.SignOut) }, Modifier.fillMaxWidth()) { Text("로컬 로그아웃") }
                                 Text("로그아웃해도 프로필과 Space는 남아 있어요. 같은 기기에서 다시 계속할 수 있어요.")
                                 OutlinedButton({ confirmReset = true }) { Text("로컬 데이터 초기화") }
@@ -169,7 +179,7 @@ fun LocalOnboardingContent(
     }
     if (confirmReset) AlertDialog(onDismissRequest = { confirmReset = false },
         title = { Text("로컬 데이터를 초기화할까요?") },
-        text = { Text("이 기기에 저장된 프로필·Space·초대와 미리보기 기록이 삭제돼요. 되돌릴 수 없어요.") },
+        text = { Text("이 기기에 저장된 프로필·Space·초대·기록과 앱에 복사한 사진이 삭제돼요. 원본 앨범은 유지되며 삭제된 앱 데이터는 되돌릴 수 없어요.") },
         confirmButton = { TextButton({ confirmReset = false; onAction(OnboardingAction.Reset) }) { Text("초기화") } },
         dismissButton = { TextButton({ confirmReset = false }) { Text("취소") } })
     if (renewConfirmation) AlertDialog(onDismissRequest = { renewConfirmation = false },

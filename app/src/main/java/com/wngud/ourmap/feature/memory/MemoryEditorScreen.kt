@@ -35,6 +35,7 @@ fun MemoryEditorScreen(
     companion: String,
     onBack: () -> Unit,
     onSave: (Memory) -> Unit,
+    persist: (suspend (Memory) -> Memory)? = null,
 ) {
     val context = LocalContext.current
     var uris by rememberSaveable { mutableStateOf(emptyList<String>()) }
@@ -50,6 +51,7 @@ fun MemoryEditorScreen(
             try { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
             catch (_: android.content.ActivityNotFoundException) { pickerError = "사진 선택 앱을 열 수 없어요." }
         },
+        persist = persist,
         prepareSave = { memory ->
             withContext(Dispatchers.IO) {
                 memory.photoUris.forEach { value ->
@@ -71,6 +73,7 @@ fun MemoryEditorContent(
     onBack: () -> Unit, onSave: (Memory) -> Unit,
     photoUris: List<String> = emptyList(), onPhotoUrisChange: (List<String>) -> Unit = {},
     onPickPhotos: () -> Unit = {}, prepareSave: suspend (Memory) -> Unit = {},
+    persist: (suspend (Memory) -> Memory)? = null,
 ) {
     var placeId by rememberSaveable { mutableStateOf(initialPlaceId) }
     val initialDate = rememberSaveable { today() }
@@ -109,8 +112,9 @@ fun MemoryEditorContent(
                 )
                 scope.launch {
                     try {
-                        prepareSave(memory)
-                        onSave(memory)
+                        if (persist == null) prepareSave(memory)
+                        val saved = persist?.invoke(memory) ?: memory
+                        onSave(saved)
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (_: Exception) {
@@ -119,7 +123,7 @@ fun MemoryEditorContent(
                 }
             }
         }, Modifier.fillMaxWidth(), enabled = place != null && parseDate(date) != null && !submitted) {
-            Text("기록 미리보기 저장")
+            Text(if (persist == null) "기록 미리보기 저장" else "기록 저장")
         }
     }) {
         FeatureRow("장소 선택", { placePicker = true }, subtitle = place?.name ?: "어디에서 함께했나요?", emoji = "📍")
@@ -170,7 +174,8 @@ fun MemoryEditorContent(
         OutlinedTextField(note, { note = it.take(200) }, Modifier.fillMaxWidth(),
             label = { Text("메모") }, placeholder = { Text("오래 기억하고 싶은 순간을 남겨요.") },
             minLines = 3, supportingText = { Text("${note.length}/200") })
-        Text("기록은 현재 미리보기 세션에만 보관돼요. 원본 사진을 복사하거나 업로드하지 않으며, 앱 종료 후 사진 접근이 해제될 수 있어요. 영구 저장은 다음 단계에서 연결해요.",
+        Text(if (persist == null) "기록은 현재 미리보기 세션에만 보관돼요. 사진 접근은 앱 종료 후 해제될 수 있어요."
+            else "기록과 사진 사본을 이 기기에 저장해요. 사진은 한 장당 최대 20MB이며, 앱 삭제·데이터 초기화 시 사라져요. 서버 백업은 아직 없어요.",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     if (submitted) Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
